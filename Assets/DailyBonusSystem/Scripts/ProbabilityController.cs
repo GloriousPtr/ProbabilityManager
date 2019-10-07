@@ -1,17 +1,19 @@
 ﻿using System;
+using System.Linq;
 using Random = UnityEngine.Random;
-using System.Collections.Generic;
+using UnityEngine;
 
 public class ProbabilityController
 {
-	public static int ChoiceRandom(List<BonusItem> items)
+	public static int ChoiceRandom(BonusItem[] items)
     {
+        int total_probability = items.Sum(reward => reward.ProbabilityPercent);
 
-//		DailyBonusController.main.BonusItems.Sort ();
-		var array = new float[items.Count];
+        Array.Sort(items, (x, y) => -x.CompareTo(y));
+        var array = new float[items.Length];
 
-		for (int index = 0; index < items.Count; index++)
-            array[index] = items[index].Percent;
+        for (int index = 0; index < items.Length; index++)
+            array[index] = (float) items[index].ProbabilityPercent / total_probability;
 
         var choice = GetRandom(array);
 
@@ -20,18 +22,21 @@ public class ProbabilityController
 
     public static int GetRandom(float[] probability)
     {
-		int target = 0;
-		int total_probability = 0;
-		foreach (BonusItem reward in DailyBonusController.main.BonusItems)
-			total_probability += reward.ProbabilityPercent;
-		target = Random.Range(0, total_probability);
-		for (int i = 0; i < DailyBonusController.main.BonusItems.Count; i++) {
-			target -= DailyBonusController.main.BonusItems [i].ProbabilityPercent;
-			if (target <= 0) {
-				target = i;
-				break;
-			}
-		}
-		return target;
+        float total = probability.Sum();
+
+        if (total > 1)
+            throw new Exception("Overall probability is greater than 1, total = " + total);
+
+        var randomPoint = Random.value * total;
+
+        for (int i = 0; i < probability.Length; i++)
+        {
+            if (randomPoint <= probability[i])
+                return i;
+
+            randomPoint -= probability[i];
+        }
+
+        return probability.Length - 1;
     }
 }

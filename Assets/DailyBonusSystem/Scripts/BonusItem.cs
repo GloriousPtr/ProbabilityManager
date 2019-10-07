@@ -1,16 +1,17 @@
 ﻿using System;
 using UnityEngine;
 
-[System.Serializable]
+[Serializable]
 public class BonusItem
 {
 	public string name;
+
+    [Range(0,100)]
     public int ProbabilityPercent;
-    public float Angle; // create class viewer info
 
+    public float Angle;
 
-    public float Percent
-    {
-        get { return ProbabilityPercent / 1000; }
-    }
+    public float Percent => (float) ProbabilityPercent / 100;
+
+    public int CompareTo(object obj) => Percent.CompareTo(((BonusItem) obj).Percent);
 }

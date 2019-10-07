@@ -12,8 +12,6 @@ public class DailyBonusController : MonoBehaviour
 
     private RectTransform arrowRect;
 
-    private bool canRotate;
-
     private void Awake()
 	{
 		main = this;
@@ -26,43 +24,32 @@ public class DailyBonusController : MonoBehaviour
 
     public void ChoiceRandom()
     {
-		canRotate = true;
-    }
-
-	private void Update()
-	{
-		if (canRotate)
-			arrowRect.Rotate (new Vector3(0,0,250) * Time.deltaTime);
-	}
-
-	public void StopArrow()
-	{
-		canRotate = false;
-
-		var choice = ProbabilityController.ChoiceRandom(BonusItems);
-		print (choice.ToString());
+        var choice = ProbabilityController.ChoiceRandom(BonusItems.ToArray());
         var rotation = arrowRect.rotation;
         StartCoroutine(
-			RotateToAngle(new Vector3(0,0,1),
-				rotation.eulerAngles.z,
+            RotateToAngle(new Vector3(0,0,1),
+                rotation.eulerAngles.z,
                 rotation.eulerAngles.z + (360 - rotation.eulerAngles.z) + BonusItems[choice].Angle,
-				1, () =>
-                {
-                    print(BonusItems[choice].name);
-                    // Do something BonusItem related here.
-                }));
-	}
+                10, () => Callback(choice)));
+    }
 
-    private IEnumerator RotateToAngle(Vector3 rotateAxis,float currentAngle, float targetAngleValue, float speed = 10, Action endFired = null)
+    private void Callback(int choice)
     {
-		var itemSoundAngle = currentAngle + (360/BonusItems.Count);
+        print(BonusItems[choice].name);
+        // Do something BonusItem related here.
+    }
+
+    private IEnumerator RotateToAngle(Vector3 rotateAxis,float currentAngle, float targetAngleValue, 
+        float speed = 10, Action endFired = null)
+    {
+        float itemSoundAngle = currentAngle + (float) 360/BonusItems.Count;
         while (true)
         {
-            var step = ((targetAngleValue - currentAngle) + speed) * Time.deltaTime;
+            var step = (targetAngleValue - currentAngle + speed) * Time.deltaTime;
             if (currentAngle + step > targetAngleValue)
             {
                 step = targetAngleValue - currentAngle;
-				arrowRect.Rotate(rotateAxis, step);
+                arrowRect.Rotate(rotateAxis, step);
                 endFired?.Invoke();
 
                 break;
@@ -70,10 +57,10 @@ public class DailyBonusController : MonoBehaviour
             currentAngle += step;
             if (currentAngle >= itemSoundAngle)
             {
-//              Play your sound here
-                itemSoundAngle = currentAngle + (360 / BonusItems.Count);
+                // Play sound
+                itemSoundAngle = currentAngle + (float) 360 / BonusItems.Count;
             }
-			arrowRect.Rotate(rotateAxis, step);
+            arrowRect.Rotate(rotateAxis, step);
 
             yield return null;
         }
